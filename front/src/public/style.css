@@ -1,0 +1,24 @@
+body {
+    background-color: #222;
+    font: Verdana;
+    color: white;
+}
+
+h1 {
+}
+
+.server h2 {
+    margin: 0;
+    padding: 0;
+    padding-top: 10px;
+}
+.server h2.dead { color: grey; }
+.server h2.sync { color: royalblue; }
+.server h2.outdate { color: crimson; }
+.server h2.ready { color: limegreen; }
+
+.server p {
+    color: #ddd;
+    margin: 0;
+    padding: 0;
+}
