@@ -11,7 +11,7 @@
 
         <div class="server" v-for="server in data">
             <h2 :class="{
-                'dead': server.status == 'dead',
+                'dead': server.status == 'dead' || server.status == 'off',
                 'sync': server.status == 'sync',
                 'outdate': server.status == 'outdate',
                 'ready': server.status == 'ready',
@@ -20,8 +20,12 @@
             </h2>
             <p>time: {{ server.time }}</p>
             <p>data: {{ server.data }}</p>
-            <p>needUpdate: {{ server.needUpdate }}</p>
             <p>status: {{ server.status }}</p>
+            <div class="buttons">
+                <button v-if="server.status != 'dead' && server.status != 'off'" @click="setData(server)">Set data</button>
+                <button v-if="server.status != 'dead' && server.status != 'off'" @click="shutdown(server)">Shut down</button>
+                <button v-if="server.status == 'off'"  @click="loadServer(server)">Start</button>
+            </div>
             <hr>
         </div>
 
@@ -34,19 +38,16 @@
 
 import axios from 'axios'
 import $ from 'jquery'
+import config from '../../../config'
 
 export default {
     data() {
         return {
-            servers: [
-                'http://localhost:9001',
-                'http://localhost:9003',
-                'http://localhost:9004',
-            ],
+            servers: config.servers,
             data: [],
             debug: false,
             updatePeriod: 500,
-            lazyUpdatePeriod: 2000,
+            lazyUpdatePeriod: 3000,
         }
     },
     computed: {
@@ -65,7 +66,19 @@ export default {
         lazyObserver() {
             var that = this
             this.data.forEach(server => {
-                if( server.status == 'ready' ) that.loadServer(server)
+                if( server.status == 'ready' ) that.testServer(server)
+            })
+        },
+        testServer(server) {
+            axios({
+                method: 'get',
+                url: server.link + '?action=ping',
+            })
+            .then(res => {
+                server.status = "sync"
+            })
+            .catch(err => {
+                server.status = "dead"
             })
         },
         loadServer(server) {
@@ -142,6 +155,12 @@ export default {
                 }
             });
         },
+        shutdown(server) {
+            server.status = 'off'
+        },
+        setData(server) {
+            server.time = Date.now()
+        }
     },
     mounted() {
         var that = this
